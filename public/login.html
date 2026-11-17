@@ -4,13 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Entrar · Agente RBTech</title>
+  <title>Entrar · RBTech</title>
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFD60A'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='900' text-anchor='middle' fill='%230F0F0F'%3ERB%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/estilo.css">
 </head>
 <body class="pagina-login">
-  <main class="cartao-login">
-    <div class="marca"><span class="marca-icone" aria-hidden="true">RB</span> Agente RBTech</div>
-    <h1>Entrar</h1>
+  <main class="cartao-login hud">
+    <div class="marca"><span class="marca-icone" aria-hidden="true">RB</span><span class="marca-nome"><b>RB<span>TECH</span></b><small>Agente de conteúdo</small></span></div>
+    <h1>Bem-vindo de <span>volta</span></h1>
     <p class="suave">Acesso exclusivo da RBTech.</p>
     <form id="form-login" novalidate>
       <label>E-mail
@@ -22,6 +27,7 @@
       <p id="erro" class="erro" role="alert" hidden></p>
       <button type="submit" class="botao primario largo">Entrar</button>
     </form>
+    <div class="selo-local">📍 <b>Grande Florianópolis</b> · iPhones e celulares</div>
   </main>
   <script>
     fetch("/api/painel/sessao").then((r) => { if (r.ok) location.replace("/"); });

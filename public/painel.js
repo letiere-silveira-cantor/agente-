@@ -145,7 +145,7 @@ function mostrarStories(roteiro) {
   const postados = lerPostados(roteiro.data);
   const r = roteiro.resumo;
 
-  const resumo = el("div", { class: "cartao" },
+  const resumo = el("div", { class: "cartao hud" },
     el("dl", { class: "resumo" },
       el("dt", {}, "Época"), el("dd", {}, r.epoca),
       el("dt", {}, "Estratégia do dia"), el("dd", {}, r.estrategiaDoDia),
@@ -244,7 +244,7 @@ function rotuloIdeia(id) {
 
 function mostrarIdeia(ideia) {
   const secoes = ideia.texto.split(/\n(?=\*(?:🔥|📱|🎬|🖼️))/u).map((x) => x.trim()).filter(Boolean);
-  const cartoes = secoes.map((secao) => el("div", { class: "cartao" },
+  const cartoes = secoes.map((secao, i) => el("div", { class: i === 0 ? "cartao hud" : "cartao" },
     el("div", { class: "mensagem" }, whatsappParaNos(secao)),
     el("div", { class: "acoes" }, el("button", { class: "botao pequeno", onclick: () => copiar(secao) }, "Copiar")),
   ));
@@ -377,7 +377,7 @@ async function carregarReels(data) {
     const relatorio = await api(`/api/painel/historico?tipo=reels&data=${data}`);
     alvo.replaceChildren(
       el("p", { class: "suave pequeno-texto" }, `Período: ${relatorio.periodo}`),
-      ...relatorio.partes.map((parte) => el("div", { class: "cartao" },
+      ...relatorio.partes.map((parte, i) => el("div", { class: i === 0 ? "cartao hud" : "cartao" },
         el("div", { class: "mensagem" }, whatsappParaNos(parte)),
         el("div", { class: "acoes" }, el("button", { class: "botao pequeno", onclick: () => copiar(parte) }, "Copiar")),
       )),

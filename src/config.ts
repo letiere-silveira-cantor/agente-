@@ -16,7 +16,7 @@ export function env(nome: string, padrao: string): string {
 }
 
 export const FUSO_HORARIO = env("FUSO_HORARIO", "America/Sao_Paulo");
-export const VERSAO_GRAPH = env("META_GRAPH_VERSION", "v24.0");
+export const VERSAO_GRAPH = env("META_GRAPH_VERSION", "v27.0");
 
 /** Números que recebem o relatório (só dígitos, com DDI e DDD: 5548999999999). */
 export function destinatarios(): string[] {

@@ -3,7 +3,7 @@ import { gerarRelatorio, salvarEAvisar, salvarSemAvisar } from "../src/pipeline.
 
 /**
  * Relatório semanal de reels.
- * - GET: Cron da Vercel (segunda de manhã). Gera, salva e avisa no WhatsApp.
+ * - GET: Cron da Vercel (segunda de manhã). Gera, salva e, se o WhatsApp estiver configurado, avisa.
  * - POST: botão do site. Gera e salva; só avisa no WhatsApp se pedir { "enviar": true }.
  */
 async function gerar(enviar: boolean): Promise<Response> {
@@ -20,7 +20,8 @@ async function gerar(enviar: boolean): Promise<Response> {
 
 export async function GET(request: Request): Promise<Response> {
   if (!ehCron(request)) return Response.json({ erro: "não autorizado" }, { status: 401 });
-  return gerar(true);
+  // Sem WhatsApp configurado, o relatório fica só no site.
+  return gerar(Boolean(process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_DESTINATARIOS));
 }
 
 export async function POST(request: Request): Promise<Response> {

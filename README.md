@@ -47,7 +47,10 @@ O acesso é por e-mail e senha, definidos nas variáveis `ADMIN_EMAIL` e `ADMIN_
 3. Gere um token com as permissões `instagram_basic`, `instagram_manage_insights`, `pages_show_list` e `pages_read_engagement`. Para não vencer, gere pelo **usuário do sistema** do Gerenciador de Negócios.
 4. Descubra o `IG_USER_ID`: no Explorador da Graph API, chame `me/accounts?fields=instagram_business_account` e copie o `id`.
 
-### 2. WhatsApp (só para o aviso do relatório de reels)
+### 2. WhatsApp (opcional: só para o aviso do relatório de reels)
+
+Sem as variáveis do WhatsApp, o relatório de reels aparece só no site. Dá para configurar depois.
+
 
 1. No mesmo app, adicione o produto **WhatsApp** e cadastre um número (não o pessoal do dono). Copie o **Phone number ID**.
 2. Dê ao usuário do sistema a permissão `whatsapp_business_messaging` e gere o token.

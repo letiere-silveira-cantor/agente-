@@ -6,7 +6,15 @@ import { del, get, list, put } from "@vercel/blob";
  * Guarda arquivos no Vercel Blob (privado). Sem BLOB_READ_WRITE_TOKEN,
  * usa a pasta .dados/ do computador, para testar localmente.
  */
-const usarBlob = () => Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+function usarBlob(): boolean {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return true;
+  if (process.env.VERCEL) {
+    throw new Error(
+      "Armazenamento não configurado. Na Vercel, abra Storage, crie um Blob, conecte ao projeto e faça Redeploy.",
+    );
+  }
+  return false;
+}
 const PASTA_LOCAL = path.join(process.cwd(), ".dados");
 
 export async function lerArquivo(caminho: string): Promise<string | null> {

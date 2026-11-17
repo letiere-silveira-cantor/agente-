@@ -79,7 +79,7 @@ export const ESQUEMA_STORIES = {
           fala: { ...texto, description: "O que o dono fala. Vazio se for só imagem e texto." },
           textoNaTela: texto,
           interacao: { ...texto, description: "Figurinha: enquete, caixa de perguntas, quiz, link do WhatsApp... Vazio se nenhuma." },
-          produto: { ...texto, description: "Produto da lista de estoque, ou vazio." },
+          produto: { ...texto, description: "Produto do estoque, como o dono escreveu ou por extenso, ou vazio." },
           inspiracao: { ...texto, description: "Post ou print de referência que inspirou, ou 'época' / 'estoque'." },
         },
       },
@@ -114,6 +114,7 @@ Regras:
 - Use figurinhas de interação (enquete, caixa de perguntas, quiz, contagem regressiva, link) em pelo menos um quarto dos stories.
 - Adapte a fórmula, nunca o conteúdo. Não reaproveite frases, artes ou bordões de outras lojas.
 - Use só produtos, preços e condições que estiverem no estoque e nas informações da loja. Nunca invente preço, especificação, garantia ou promoção. Se a estratégia pedir uma oferta que não existe, sugira em "observacoes" em vez de anunciar.
+- O estoque é escrito pelo dono do jeito que ele quiser: lista, frases soltas, abreviações (\"13 pro max 256 azul 4.2k pix\"), erros de digitação, preços em formatos variados. Interprete com bom senso. Quando algo estiver incompleto ou ambíguo (preço sem dizer se é no Pix, modelo sem capacidade, condição pouco clara), use só a parte que está clara e não complete o resto por conta própria. Se faltar algo importante, diga em "observacoes".
 - Escreva as falas como o dono falaria: português do Brasil, frases curtas, natural, sem cara de anúncio.
 - Não fale mal de concorrentes nem de outras lojas.
 - Cada story precisa ser possível de gravar em menos de um minuto, com o celular.`;

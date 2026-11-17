@@ -6,11 +6,24 @@ import { del, get, list, put } from "@vercel/blob";
  * Guarda arquivos no Vercel Blob (privado). Sem BLOB_READ_WRITE_TOKEN,
  * usa a pasta .dados/ do computador, para testar localmente.
  */
+/**
+ * Chave do Vercel Blob. Normalmente BLOB_READ_WRITE_TOKEN, mas a Vercel deixa
+ * escolher outro prefixo (ex.: AGENTE_READ_WRITE_TOKEN). As chaves do Blob
+ * sempre começam com "vercel_blob_rw_".
+ */
+function tokenBlob(): string | undefined {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return process.env.BLOB_READ_WRITE_TOKEN;
+  for (const [nome, valor] of Object.entries(process.env)) {
+    if (nome.endsWith("_READ_WRITE_TOKEN") && valor?.startsWith("vercel_blob_rw_")) return valor;
+  }
+  return undefined;
+}
+
 function usarBlob(): boolean {
-  if (process.env.BLOB_READ_WRITE_TOKEN) return true;
+  if (tokenBlob()) return true;
   if (process.env.VERCEL) {
     throw new Error(
-      "Armazenamento não configurado. Na Vercel, abra Storage, crie um Blob, conecte ao projeto e faça Redeploy.",
+      "Armazenamento sem chave. Na Vercel, em Storage, conecte um Blob com a opção \"Add a read-write token\" marcada e faça Redeploy.",
     );
   }
   return false;
@@ -25,7 +38,7 @@ export async function lerArquivo(caminho: string): Promise<string | null> {
       return null;
     }
   }
-  const resultado = await get(caminho, { access: "private", useCache: false });
+  const resultado = await get(caminho, { access: "private", useCache: false, token: tokenBlob() });
   if (!resultado) return null;
   return new Response(resultado.stream).text();
 }
@@ -42,6 +55,7 @@ export async function gravarArquivo(caminho: string, conteudo: string, contentTy
     contentType: `${contentType}; charset=utf-8`,
     addRandomSuffix: false,
     allowOverwrite: true,
+    token: tokenBlob(),
   });
 }
 
@@ -52,7 +66,13 @@ export async function gravarBinario(caminho: string, dados: Buffer, contentType:
     await writeFile(destino, dados);
     return;
   }
-  await put(caminho, dados, { access: "private", contentType, addRandomSuffix: false, allowOverwrite: true });
+  await put(caminho, dados, {
+    access: "private",
+    contentType,
+    addRandomSuffix: false,
+    allowOverwrite: true,
+    token: tokenBlob(),
+  });
 }
 
 export async function lerBinario(caminho: string): Promise<Buffer | null> {
@@ -63,7 +83,7 @@ export async function lerBinario(caminho: string): Promise<Buffer | null> {
       return null;
     }
   }
-  const resultado = await get(caminho, { access: "private", useCache: false });
+  const resultado = await get(caminho, { access: "private", useCache: false, token: tokenBlob() });
   if (!resultado) return null;
   return Buffer.from(await new Response(resultado.stream).arrayBuffer());
 }
@@ -73,7 +93,7 @@ export async function apagarArquivo(caminho: string): Promise<void> {
     await unlink(path.join(PASTA_LOCAL, caminho)).catch(() => undefined);
     return;
   }
-  await del(caminho);
+  await del(caminho, { token: tokenBlob() });
 }
 
 /** Caminhos dos arquivos que começam com `prefixo` (ex.: "relatorios/"). */
@@ -91,7 +111,7 @@ export async function listarArquivos(prefixo: string): Promise<string[]> {
   const caminhos: string[] = [];
   let cursor: string | undefined;
   do {
-    const pagina = await list({ prefix: prefixo, cursor });
+    const pagina = await list({ prefix: prefixo, cursor, token: tokenBlob() });
     caminhos.push(...pagina.blobs.map((b) => b.pathname));
     cursor = pagina.hasMore ? pagina.cursor : undefined;
   } while (cursor);

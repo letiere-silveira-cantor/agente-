@@ -1,14 +1,20 @@
 import { gerarComClaude } from "./claude.js";
 import { FUSO_HORARIO, carregarConfigLoja, destinatarios, env } from "./config.js";
 import { coletarDados } from "./meta.js";
-import { analisarProprios, analisarReferencias } from "./metricas.js";
 import { montarMensagemSemanal, montarPromptSistema } from "./prompt.js";
 import { salvarRelatorio, type RelatorioSalvo } from "./armazenamento.js";
-import type { DadosColetados } from "./tipos.js";
+import type { ContaBruta, DadosColetados, PostBruto } from "./tipos.js";
 import { dividirMensagem, enviarModeloAviso, enviarPartes } from "./whatsapp.js";
 
 function formatarData(d: Date): string {
   return new Intl.DateTimeFormat("pt-BR", { timeZone: FUSO_HORARIO, dateStyle: "short" }).format(d);
+}
+
+/** Só os posts publicados desde `inicio`, sem o campo `id` (que não ajuda na análise). */
+function noPeriodo<T extends PostBruto>(posts: T[], inicio: Date): T[] {
+  return posts
+    .filter((p) => new Date(p.timestamp).getTime() >= inicio.getTime())
+    .map(({ id: _id, ...resto }) => resto as T);
 }
 
 export interface ResultadoGeracao {
@@ -37,16 +43,18 @@ export async function gerarRelatorio(opcoes: OpcoesGeracao = {}): Promise<Result
     throw new Error(`Nenhuma conta de referência pôde ser lida.\n${dados.avisos.join("\n")}`);
   }
 
-  const referencias = analisarReferencias(dados.referencias, { agora, diasAnalise, fuso: FUSO_HORARIO });
-  const proprios = dados.proprios.length > 0 ? analisarProprios(dados.proprios, { agora, fuso: FUSO_HORARIO }) : null;
-
+  // O código só recorta o período e repassa os dados como vieram da API.
+  // Engajamento, mediana, multiplicador, descartes e padrões ficam com o Claude.
   const inicio = new Date(agora.getTime() - diasAnalise * 24 * 3600 * 1000);
+  const inicioSemana = new Date(agora.getTime() - 7 * 24 * 3600 * 1000);
+  const referencias: ContaBruta[] = dados.referencias.map((c) => ({ ...c, posts: noPeriodo(c.posts, inicio) }));
   const periodo = { inicio: formatarData(inicio), fim: formatarData(agora) };
 
   const mensagem = montarMensagemSemanal({
     periodo,
+    agora: agora.toISOString(),
     referencias,
-    proprios,
+    proprios: noPeriodo(dados.proprios, inicioSemana),
     avisos: dados.avisos,
     transcricoes: config.transcricoes,
     estoque: config.estoque,

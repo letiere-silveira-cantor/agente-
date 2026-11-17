@@ -3,11 +3,11 @@
 Toda segunda-feira, o agente:
 
 1. Busca os posts das lojas de referência e os da própria RBTech na API do Instagram.
-2. Calcula quais posts viralizaram, comparando cada um com a mediana da própria conta.
-3. Manda os dados para o Claude, que explica o que funcionou e escreve os roteiros de reels.
+2. Manda os dados, do jeito que vieram da API, para o Claude.
+3. O Claude faz toda a análise (engajamento, mediana, multiplicador, descartes, padrões) e escreve os roteiros de reels.
 4. Avisa o dono no WhatsApp. Quando ele responde, recebe o relatório completo: o resumo numa mensagem e cada roteiro em outra.
 
-O prompt original está em [`docs/prompt-original.md`](docs/prompt-original.md). A única mudança foi na Etapa 1: as contas (engajamento, mediana, multiplicador, descartes) agora são feitas pelo código em `src/metricas.ts`, e o Claude recebe os números prontos. Assim os cálculos sempre batem.
+O prompt original está em [`docs/prompt-original.md`](docs/prompt-original.md) e é usado como está, em `src/prompt.ts`. O código não analisa nada: só busca os posts, separa os do período (`diasAnalise` para as lojas de referência, últimos 7 dias para a RBTech) e entrega ao Claude, junto com a data e hora da coleta para ele saber quais posts têm menos de 48 horas.
 
 ## Como funciona
 
@@ -15,8 +15,7 @@ O prompt original está em [`docs/prompt-original.md`](docs/prompt-original.md).
 Cron da Vercel (segunda, 08:17)
   └─ /api/gerar
        ├─ API da Meta: posts das lojas de referência + posts da RBTech
-       ├─ src/metricas.ts: engajamento, mediana, multiplicador, descartes
-       ├─ Claude: resumo da semana + roteiros
+       ├─ Claude: análise dos virais, resumo da semana e roteiros
        ├─ Vercel Blob: guarda o relatório
        └─ WhatsApp: manda o modelo "relatório pronto"
 
@@ -145,8 +144,8 @@ npm run typecheck
 ## Limites conhecidos
 
 - De contas de outras pessoas, a API só entrega curtidas e comentários, sem visualizações. Por isso a viralização é medida por engajamento em relação à mediana da própria conta.
-- Contas pessoais não aparecem no `business_discovery`. Contas que escondem as curtidas têm esses posts descartados.
-- A detecção de sorteios é por palavras-chave na legenda (`src/metricas.ts`). O Claude é instruído a ignorar os que escaparem.
+- Contas pessoais não aparecem no `business_discovery`. Posts de contas que escondem as curtidas chegam sem o número de curtidas.
+- As contas (mediana, multiplicador) são feitas pelo Claude. Com muitos posts, ele pode errar alguma casa decimal; para conferir, rode `npm run gerar:local -- --salvar-dados` e compare com os dados salvos em `saida/`.
 - Sem transcrição, o Claude deduz formato e gancho só pela legenda e avisa quando for dedução.
 
 ## Estrutura
@@ -155,8 +154,7 @@ npm run typecheck
 api/gerar.ts        rota do Cron: coleta, análise, Claude, aviso no WhatsApp
 api/whatsapp.ts     webhook: entrega o relatório quando o dono responde
 src/meta.ts         chamadas da API do Instagram
-src/metricas.ts     engajamento, mediana, multiplicador e descartes
-src/prompt.ts       prompt do sistema e mensagem semanal
+src/prompt.ts       prompt do sistema (com a análise) e mensagem semanal
 src/claude.ts       chamada ao Claude
 src/whatsapp.ts     envio, divisão das mensagens e assinatura do webhook
 src/armazenamento.ts  relatório no Vercel Blob

@@ -1,10 +1,9 @@
-import type { AnalisePropria, AnaliseReferencias } from "./metricas.js";
-import { MINIMO_POSTS_POR_CONTA } from "./metricas.js";
+import type { ContaBruta, PostProprio } from "./tipos.js";
 
 /**
  * Prompt do sistema do agente (parte 1 do arquivo original em docs/prompt-original.md).
- * Mudança em relação ao original: a Etapa 1 agora recebe os números prontos,
- * calculados pelo código em src/metricas.ts, em vez de pedir ao modelo para calcular.
+ * Toda a análise (engajamento, mediana, multiplicador, descartes, padrões) é feita pelo Claude;
+ * o código só coleta os dados e entrega como vieram da API.
  */
 export function montarPromptSistema(sobreALoja: string, quantidadeRoteiros: number): string {
   return `Você é o estrategista de conteúdo da RBTech, uma loja de iPhones e celulares em Florianópolis. Toda semana você recebe dados de posts de lojas de referência do mesmo nicho e transforma isso em roteiros de reels que o dono da loja vai gravar.
@@ -15,20 +14,18 @@ O objetivo é simples: descobrir o que está dando resultado para outras lojas, 
 ${sobreALoja}
 
 ## Etapa 1 — Encontrar o que viralizou
-Os números já chegam calculados pelo sistema, com estas regras:
-- Engajamento do post = curtidas + 2 × comentários (comentário vale mais porque exige mais esforço).
-- Mediana = mediana do engajamento da conta no período.
+Para cada conta de referência:
+- Calcule o engajamento de cada post: curtidas + 2 × comentários (comentário vale mais porque exige mais esforço).
+- Calcule a mediana de engajamento daquela conta no período.
 - Multiplicador = engajamento do post ÷ mediana da conta.
-- "viral" = multiplicador 3 ou mais. "acima da média" = entre 2 e 3.
+- Considere "viral" o post com multiplicador 3 ou mais. Entre 2 e 3, "acima da média".
 
-Use esses números como estão; não recalcule. Comparar cada post com a própria conta é o que importa: um reel com 800 curtidas numa conta que costuma ter 100 diz mais do que um com 5.000 numa conta que sempre tem 4.000.
+Comparar cada post com a própria conta é o que importa: um reel com 800 curtidas numa conta que costuma ter 100 diz mais do que um com 5.000 numa conta que sempre tem 4.000.
 
-O sistema já descartou:
+Descarte da análise:
 - Sorteios e posts do tipo "comente e marque amigos": inflam comentários e não ensinam nada sobre conteúdo.
 - Posts com menos de 48 horas: ainda estão crescendo.
-- Contas com menos de ${MINIMO_POSTS_POR_CONTA} posts válidos no período: não dá para calcular mediana confiável.
-
-A detecção de sorteio é feita por palavras-chave e pode deixar passar algum. Se a legenda de um post marcado como viral mostrar que é sorteio ou que pede para marcar amigos, ignore esse post e diga isso no resumo.
+- Contas com menos de 5 posts no período: não dá para calcular mediana confiável.
 
 Se a mensagem trouxer avisos da coleta (conta que não pôde ser lida, por exemplo), mencione no resumo em uma linha.
 
@@ -91,34 +88,30 @@ Fala: "..."
 
 export interface DadosMensagem {
   periodo: { inicio: string; fim: string };
-  referencias: AnaliseReferencias;
-  proprios: AnalisePropria | null;
+  /** Data e hora da coleta, para o Claude saber quais posts têm menos de 48 horas. */
+  agora: string;
+  referencias: ContaBruta[];
+  /** Posts da RBTech dos últimos 7 dias. */
+  proprios: PostProprio[];
   avisos: string[];
   transcricoes: string;
   estoque: string;
 }
 
-/** Mensagem semanal (parte 2 do arquivo original), com os dados já analisados. */
+/** Mensagem semanal (parte 2 do arquivo original), com os dados brutos da API da Meta. */
 export function montarMensagemSemanal(d: DadosMensagem): string {
-  const avisos = [
-    ...d.avisos,
-    ...d.referencias.contasExcluidas.map((c) => `@${c.conta} ficou de fora: ${c.motivo}.`),
-  ];
-
   const proprios =
-    d.proprios && d.proprios.semanaPassada.length > 0
-      ? JSON.stringify(d.proprios, null, 2)
-      : "Sem posts da RBTech nos últimos 7 dias.";
+    d.proprios.length > 0 ? JSON.stringify(d.proprios, null, 2) : "Sem posts da RBTech nos últimos 7 dias.";
 
   return `Período analisado: ${d.periodo.inicio} a ${d.periodo.fim}
+Data e hora da coleta: ${d.agora}
+Os horários dos posts (timestamp) estão em UTC. Florianópolis é UTC−3.
 
 ## Posts das contas de referência
-${d.referencias.contas.length} conta(s) e ${d.referencias.totalPostsAnalisados} post(s) válidos. Os posts de cada conta estão do maior para o menor multiplicador. Horários no fuso de Florianópolis.
-
-${JSON.stringify(d.referencias.contas, null, 2)}
+${JSON.stringify(d.referencias, null, 2)}
 
 ## Avisos da coleta
-${avisos.length > 0 ? avisos.map((a) => `- ${a}`).join("\n") : "Nenhum."}
+${d.avisos.length > 0 ? d.avisos.map((a) => `- ${a}`).join("\n") : "Nenhum."}
 
 ## Transcrições
 ${d.transcricoes || "Nenhuma transcrição esta semana."}

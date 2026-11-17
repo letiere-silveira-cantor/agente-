@@ -83,7 +83,7 @@ a { color: var(--destaque); }
 .botao.largo { width: 100%; }
 
 label { display: block; font-size: 0.9rem; color: var(--suave); margin: 10px 0; }
-input[type="email"], input[type="password"], input[type="number"], select, textarea {
+input[type="email"], input[type="password"], input[type="number"], input[type="text"], select, textarea {
   display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
   border: 1px solid var(--borda); border-radius: 10px; background: var(--superficie); color: var(--texto);
   font: inherit; font-size: 16px;
@@ -135,6 +135,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--destaque); 
 
 /* Relatório de reels (formato WhatsApp) */
 .mensagem { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Ideias */
+.fontes { margin: 0; padding-left: 18px; font-size: 0.9rem; }
+.fontes li { margin: 4px 0; overflow-wrap: anywhere; }
+#ideia-gerar { margin-top: 4px; }
 
 /* Prints */
 .area-envio {

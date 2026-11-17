@@ -32,6 +32,7 @@ Toda a análise é feita pela IA. O código só busca os dados e entrega a ela.
 | Aba | Para quê |
 |---|---|
 | **Stories** | Roteiro do dia em cartões: horário, cena, fala, texto na tela, figurinha. Botão para copiar e marcar como postado. Dá para ver dias anteriores e gerar de novo na hora. |
+| **Ideias** | Ideia avulsa: a IA pesquisa na internet o que está viralizando agora (ou o tema que você digitar, como "GTA 6") e cria 1 story, 1 reels e 1 post, com as fontes da pesquisa. |
 | **Prints** | Enviar prints dos stories das concorrentes (direto da galeria do celular). |
 | **Reels** | Relatório semanal de reels, com histórico. |
 | **Configurações** | Lojas de referência, estoque da semana, informações da loja, quantos stories por dia. |
@@ -127,10 +128,12 @@ npm test
 public/              o site (login, painel)
 api/stories.ts       roteiro diário de stories (agendado + botão do site)
 api/gerar.ts         relatório semanal de reels (agendado + botão do site)
+api/ideias.ts        ideia avulsa com pesquisa na internet
 api/whatsapp.ts      webhook: entrega o relatório quando o dono responde
 api/painel/          login, configurações, histórico e prints
 src/stories.ts       coleta e prompt dos stories
 src/prompt.ts        prompt dos reels
+src/ideias.ts        prompt e histórico das ideias avulsas
 src/calendario.ts    datas comerciais
 src/auth.ts          login e sessão
 src/meta.ts          API do Instagram

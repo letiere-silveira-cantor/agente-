@@ -50,7 +50,8 @@ export async function gravarArquivo(caminho: string, conteudo: string, contentTy
     await writeFile(destino, conteudo);
     return;
   }
-  await put(caminho, conteudo, {
+  // O Blob não aceita arquivo vazio; uma quebra de linha some no trim() de quem lê.
+  await put(caminho, conteudo === "" ? "\n" : conteudo, {
     access: "private",
     contentType: `${contentType}; charset=utf-8`,
     addRandomSuffix: false,

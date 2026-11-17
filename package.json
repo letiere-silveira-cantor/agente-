@@ -1,0 +1,25 @@
+{
+  "name": "agente-reels-rbtech",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Agente semanal de reels virais da RBTech: busca posts no Instagram, encontra os virais, gera roteiros com o Claude e envia pelo WhatsApp.",
+  "scripts": {
+    "gerar:local": "tsx scripts/local.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test test/*.test.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.9.0",
+    "@vercel/blob": "^2.9.0",
+    "@vercel/functions": "^3.11.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "contasReferencia": ["troque_pela_loja_1", "troque_pela_loja_2", "troque_pela_loja_3"],
+  "quantidadeRoteiros": 5,
+  "diasAnalise": 30,
+  "postsPorConta": 50
+}

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/gerar.ts": { "maxDuration": 300, "includeFiles": "config/**" },
+    "api/whatsapp.ts": { "maxDuration": 60 }
+  },
+  "crons": [{ "path": "/api/gerar", "schedule": "17 11 * * 1" }]
+}

@@ -15,6 +15,7 @@
 
   <nav class="abas" role="tablist">
     <button role="tab" data-aba="stories" aria-selected="true">Stories</button>
+    <button role="tab" data-aba="ideias">Ideias</button>
     <button role="tab" data-aba="prints">Prints</button>
     <button role="tab" data-aba="reels">Reels</button>
     <button role="tab" data-aba="config">Configurações</button>
@@ -29,6 +30,19 @@
       </div>
       <p class="suave pequeno-texto">O roteiro de stories é gerado sozinho todo dia antes das 9h. Gerar agora leva alguns minutos.</p>
       <div id="stories-conteudo"></div>
+    </section>
+
+    <!-- IDEIAS -->
+    <section id="aba-ideias" class="aba" hidden>
+      <h2>Ideia avulsa</h2>
+      <p class="suave">A IA pesquisa na internet o que está viralizando agora e cria <strong>1 story, 1 reels e 1 post</strong> para a RBTech.</p>
+      <label>Tema (opcional)
+        <input type="text" id="ideia-tema" maxlength="200" placeholder="Ex.: GTA 6, final da novela, jogo do Brasil…">
+      </label>
+      <button id="ideia-gerar" class="botao primario largo">Gerar ideia</button>
+      <p class="suave pequeno-texto">Em branco, a IA escolhe o assunto do momento. Leva de 1 a 3 minutos.</p>
+      <div class="barra"><select id="ideias-data" aria-label="Ideias anteriores"></select></div>
+      <div id="ideias-conteudo"></div>
     </section>
 
     <!-- PRINTS -->

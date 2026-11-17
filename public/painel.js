@@ -100,7 +100,7 @@ function abrirAba(nome) {
   try { localStorage.setItem("aba", nome); } catch {}
   if (!carregadas.has(nome)) {
     carregadas.add(nome);
-    ({ stories: iniciarStories, prints: carregarPrints, reels: iniciarReels, config: carregarConfig })[nome]();
+    ({ stories: iniciarStories, ideias: iniciarIdeias, prints: carregarPrints, reels: iniciarReels, config: carregarConfig })[nome]();
   }
 }
 for (const botao of document.querySelectorAll(".abas button")) {
@@ -228,6 +228,76 @@ $("#stories-gerar").addEventListener("click", (e) =>
       avisar("Roteiro pronto");
     } catch (erro) {
       await carregarStories($("#stories-data").value);
+      throw erro;
+    }
+  }),
+);
+
+// ---------- ideias ----------
+
+function rotuloIdeia(id) {
+  const [data, hora] = id.split("T");
+  const [ano, mes, dia] = data.split("-");
+  const [h, m] = hora.split("-");
+  return `${dia}/${mes}/${ano} às ${h}:${m}`;
+}
+
+function mostrarIdeia(ideia) {
+  const secoes = ideia.texto.split(/\n(?=\*(?:🔥|📱|🎬|🖼️))/u).map((x) => x.trim()).filter(Boolean);
+  const cartoes = secoes.map((secao) => el("div", { class: "cartao" },
+    el("div", { class: "mensagem" }, whatsappParaNos(secao)),
+    el("div", { class: "acoes" }, el("button", { class: "botao pequeno", onclick: () => copiar(secao) }, "Copiar")),
+  ));
+  const cabecalho = el("p", { class: "suave pequeno-texto" },
+    ideia.tema ? `Tema pedido: ${ideia.tema}` : "Tema escolhido pela IA");
+  const fontes = ideia.fontes?.length
+    ? el("div", { class: "cartao" },
+        el("h3", {}, "Fontes da pesquisa"),
+        el("ul", { class: "fontes" }, ideia.fontes.map((f) =>
+          el("li", {}, el("a", { href: f.url, target: "_blank", rel: "noopener noreferrer" }, f.titulo)))),
+      )
+    : null;
+  $("#ideias-conteudo").replaceChildren(cabecalho, ...cartoes, ...(fontes ? [fontes] : []));
+}
+
+async function carregarIdeia(id) {
+  const alvo = $("#ideias-conteudo");
+  if (!id) {
+    alvo.replaceChildren(el("div", { class: "vazio" }, "Nenhuma ideia ainda. Toque em Gerar ideia."));
+    return;
+  }
+  alvo.replaceChildren(el("div", { class: "carregando" }, "Carregando…"));
+  try {
+    mostrarIdeia(await api(`/api/painel/historico?tipo=ideias&data=${encodeURIComponent(id)}`));
+  } catch (e) {
+    alvo.replaceChildren(el("div", { class: "vazio" }, e.message));
+  }
+}
+
+async function iniciarIdeias(selecionar) {
+  const { datas } = await api("/api/painel/historico?tipo=ideias").catch((e) => (avisar(e.message), { datas: [] }));
+  const select = $("#ideias-data");
+  select.replaceChildren(
+    ...(datas.length ? datas.map((id) => el("option", { value: id }, rotuloIdeia(id))) : [el("option", { value: "" }, "Nenhuma ideia ainda")]),
+  );
+  if (selecionar) select.value = selecionar;
+  await carregarIdeia(select.value);
+}
+
+$("#ideias-data").addEventListener("change", (e) => carregarIdeia(e.target.value));
+$("#ideia-gerar").addEventListener("click", (e) =>
+  comBotaoOcupado(e.target, "Pesquisando e criando… (1 a 3 min)", async () => {
+    $("#ideias-conteudo").replaceChildren(el("div", { class: "carregando" }, "A IA está pesquisando o que está em alta e criando o conteúdo. Não feche a página."));
+    try {
+      const { ideia } = await api("/api/ideias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tema: $("#ideia-tema").value }),
+      });
+      await iniciarIdeias(ideia.id);
+      avisar("Ideia pronta");
+    } catch (erro) {
+      await carregarIdeia($("#ideias-data").value);
       throw erro;
     }
   }),

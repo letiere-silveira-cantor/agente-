@@ -2,22 +2,51 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "outputDirectory": "public",
   "functions": {
-    "api/gerar.ts": { "maxDuration": 300, "includeFiles": "config/**" },
-    "api/stories.ts": { "maxDuration": 300, "includeFiles": "config/**" },
-    "api/painel/config.ts": { "includeFiles": "config/**" },
-    "api/whatsapp.ts": { "maxDuration": 60 }
+    "api/gerar.ts": {
+      "maxDuration": 300,
+      "includeFiles": "config/**"
+    },
+    "api/stories.ts": {
+      "maxDuration": 300,
+      "includeFiles": "config/**"
+    },
+    "api/painel/config.ts": {
+      "includeFiles": "config/**"
+    },
+    "api/whatsapp.ts": {
+      "maxDuration": 60
+    },
+    "api/ideias.ts": {
+      "maxDuration": 300,
+      "includeFiles": "config/**"
+    }
   },
   "crons": [
-    { "path": "/api/gerar", "schedule": "17 11 * * 1" },
-    { "path": "/api/stories", "schedule": "7 11 * * *" }
+    {
+      "path": "/api/gerar",
+      "schedule": "17 11 * * 1"
+    },
+    {
+      "path": "/api/stories",
+      "schedule": "7 11 * * *"
+    }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "same-origin" }
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "same-origin"
+        }
       ]
     }
   ]

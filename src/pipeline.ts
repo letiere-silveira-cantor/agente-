@@ -70,6 +70,18 @@ export async function gerarRelatorio(opcoes: OpcoesGeracao = {}): Promise<Result
   };
 }
 
+/** Salva o relatório sem avisar ninguém (geração pelo site). */
+export async function salvarSemAvisar(resultado: ResultadoGeracao, agora = new Date()): Promise<RelatorioSalvo> {
+  const relatorio: RelatorioSalvo = {
+    geradoEm: agora.toISOString(),
+    periodo: resultado.periodo,
+    partes: resultado.partes,
+    entreguePara: [],
+  };
+  await salvarRelatorio(relatorio);
+  return relatorio;
+}
+
 /**
  * Salva o relatório e avisa os destinatários.
  * - modo "modelo" (padrão): manda o modelo aprovado; o relatório vai quando a pessoa responder.

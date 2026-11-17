@@ -1,107 +1,96 @@
-# Agente de Reels Virais — RBTech
+# Agente de Reels e Stories — RBTech
 
-Toda segunda-feira, o agente:
+Um site com login, só da RBTech, onde a IA deixa pronto:
 
-1. Busca os posts das lojas de referência e os da própria RBTech na API do Instagram.
-2. Manda os dados, do jeito que vieram da API, para o Claude.
-3. O Claude faz toda a análise (engajamento, mediana, multiplicador, descartes, padrões) e escreve os roteiros de reels.
-4. Avisa o dono no WhatsApp. Quando ele responde, recebe o relatório completo: o resumo numa mensagem e cada roteiro em outra.
+- **Todo dia, antes das 9h:** o roteiro de 20 stories do dia, com estratégia da época (Black Friday, Natal, 13º...).
+- **Toda segunda de manhã:** o relatório dos reels que viralizaram nas lojas de referência, com roteiros para gravar. Também avisa no WhatsApp.
 
-O prompt original está em [`docs/prompt-original.md`](docs/prompt-original.md) e é usado como está, em `src/prompt.ts`. O código não analisa nada: só busca os posts, separa os do período (`diasAnalise` para as lojas de referência, últimos 7 dias para a RBTech) e entrega ao Claude, junto com a data e hora da coleta para ele saber quais posts têm menos de 48 horas.
+Ninguém precisa deixar computador ligado: tudo roda nos servidores da Vercel, sozinho, no horário.
 
 ## Como funciona
 
 ```
-Cron da Vercel (segunda, 08:17)
-  └─ /api/gerar
-       ├─ API da Meta: posts das lojas de referência + posts da RBTech
-       ├─ Claude: análise dos virais, resumo da semana e roteiros
-       ├─ Vercel Blob: guarda o relatório
-       └─ WhatsApp: manda o modelo "relatório pronto"
+Todo dia ~8h  →  /api/stories
+                   busca os posts de ontem das lojas de referência (API do Instagram)
+                   + os stories da própria RBTech
+                   + os prints de stories que você subiu no site
+                   + as datas comerciais próximas e o estoque
+                   →  a IA (Claude) monta 20 stories  →  aparece no site
 
-Dono responde no WhatsApp
-  └─ /api/whatsapp (webhook)
-       └─ manda o relatório em várias mensagens
+Segunda ~8h   →  /api/gerar
+                   busca 30 dias de posts das lojas de referência
+                   →  a IA acha os virais e escreve os roteiros de reels
+                   →  aparece no site e avisa no WhatsApp
 ```
 
-Por que esse vai e volta? O WhatsApp só deixa uma empresa mandar mensagem livre para quem falou com ela nas últimas 24 horas. Fora disso, só com um **modelo de mensagem aprovado** pela Meta. Então o agente manda o modelo, e a resposta do dono abre a janela de 24 horas para o relatório.
+**Sobre os stories das concorrentes:** o Instagram não deixa nenhum sistema ler os stories de outras contas. Por isso o site tem a aba **Prints**: tire prints dos stories delas durante o dia e envie. O roteiro do dia seguinte usa esses prints. Sem prints, a IA usa os posts e reels delas, o calendário e o estoque.
 
-Depois de receber, se o dono quiser o relatório de novo, é só mandar **relatório**.
+Toda a análise é feita pela IA. O código só busca os dados e entrega a ela.
 
-## O que você edita toda semana
+## O site
 
-| Arquivo | O que é |
+| Aba | Para quê |
 |---|---|
-| `config/estoque.md` | Produtos, preços e condições da semana. O agente só usa o que estiver aqui. **Atualize antes de segunda.** |
-| `config/transcricoes.md` | Opcional: texto falado de reels de referência que você transcreveu. |
+| **Stories** | Roteiro do dia em cartões: horário, cena, fala, texto na tela, figurinha. Botão para copiar e marcar como postado. Dá para ver dias anteriores e gerar de novo na hora. |
+| **Prints** | Enviar prints dos stories das concorrentes (direto da galeria do celular). |
+| **Reels** | Relatório semanal de reels, com histórico. |
+| **Configurações** | Lojas de referência, estoque da semana, informações da loja, quantos stories por dia. |
 
-Dá para editar pelo próprio GitHub, inclusive no celular. Cada alteração faz a Vercel publicar de novo sozinha.
+O acesso é por e-mail e senha, definidos nas variáveis `ADMIN_EMAIL` e `ADMIN_PASSWORD` da Vercel (nunca no código). Depois de 5 senhas erradas seguidas, o login fica bloqueado por 15 minutos. A sessão dura 7 dias.
 
-## O que você configura uma vez
-
-| Arquivo | O que é |
-|---|---|
-| `config/loja.md` | Sobre a loja: o que vende, diferenciais, público, bairro, tom de voz, @ e WhatsApp. **Troque todos os `{{ }}`**: o agente não roda enquanto houver algum. |
-| `config/contas.json` | `contasReferencia`: os @ das lojas que você quer acompanhar (precisam ser contas comerciais ou de criador). `quantidadeRoteiros`, `diasAnalise` (padrão 30) e `postsPorConta` (padrão 50). |
-
-## Passo a passo da instalação
+## Instalação (uma vez só)
 
 ### 1. Instagram (API da Meta)
 
 1. O Instagram da RBTech precisa ser **conta comercial ou de criador**, ligada a uma Página do Facebook.
 2. Em [developers.facebook.com](https://developers.facebook.com), crie um app do tipo **Business**.
-3. Gere um token com as permissões `instagram_basic`, `instagram_manage_insights`, `pages_show_list` e `pages_read_engagement`. Para o token não vencer, use um **usuário do sistema** no Gerenciador de Negócios (Configurações do negócio > Usuários do sistema) e gere o token por ele.
-4. Descubra o `IG_USER_ID`: no Explorador da Graph API, chame `me/accounts?fields=instagram_business_account` e copie o `id` de `instagram_business_account`.
+3. Gere um token com as permissões `instagram_basic`, `instagram_manage_insights`, `pages_show_list` e `pages_read_engagement`. Para não vencer, gere pelo **usuário do sistema** do Gerenciador de Negócios.
+4. Descubra o `IG_USER_ID`: no Explorador da Graph API, chame `me/accounts?fields=instagram_business_account` e copie o `id`.
 
-### 2. WhatsApp (Cloud API)
+### 2. WhatsApp (só para o aviso do relatório de reels)
 
-1. No mesmo app, adicione o produto **WhatsApp** e cadastre o número que vai enviar os relatórios. Use um número que **não** seja o WhatsApp pessoal do dono.
-2. Copie o **Phone number ID** (`WHATSAPP_PHONE_NUMBER_ID`).
-3. Dê ao usuário do sistema a permissão `whatsapp_business_messaging` e gere o token permanente (`WHATSAPP_TOKEN`).
-4. No Gerenciador do WhatsApp, crie o modelo de mensagem:
-   - Nome: `relatorio_semanal`
-   - Categoria: **Utilidade**
-   - Idioma: **Português (BR)**
-   - Corpo: `Seu relatório de reels da semana ({{1}}) está pronto 🎬 Responda esta mensagem para receber os roteiros.`
-   - Exemplo para `{{1}}`: `10/11/2026 a 17/11/2026`
-
-   O modelo precisa ter **exatamente uma variável** no corpo: o agente preenche com o período. Espere a aprovação (costuma levar minutos).
-5. O webhook é configurado no passo 4, depois que o projeto estiver na Vercel.
+1. No mesmo app, adicione o produto **WhatsApp** e cadastre um número (não o pessoal do dono). Copie o **Phone number ID**.
+2. Dê ao usuário do sistema a permissão `whatsapp_business_messaging` e gere o token.
+3. Crie o modelo de mensagem `relatorio_semanal`, categoria **Utilidade**, idioma **Português (BR)**, corpo:
+   `Seu relatório de reels da semana ({{1}}) está pronto 🎬 Responda esta mensagem para receber os roteiros.`
+   Exemplo para `{{1}}`: `10/11/2026 a 17/11/2026`.
 
 ### 3. Vercel
 
-1. Em [vercel.com](https://vercel.com), importe este repositório (Add New > Project).
-2. Em **Storage**, crie um **Blob** store e conecte ao projeto. Isso cria a variável `BLOB_READ_WRITE_TOKEN` sozinho.
-3. Em **Settings > Environment Variables**, cadastre as variáveis do arquivo [`.env.example`](.env.example):
-   - `ANTHROPIC_API_KEY`: a chave da API do Claude ([console.anthropic.com](https://console.anthropic.com)).
-   - `META_ACCESS_TOKEN`, `IG_USER_ID`.
-   - `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_DESTINATARIOS` (ex.: `5548999999999`).
-   - `WHATSAPP_VERIFY_TOKEN`: invente uma senha; ela é usada no passo 4.
-   - `META_APP_SECRET`: a chave secreta do app (Configurações > Básico).
-   - `CRON_SECRET`: invente uma senha longa. A Vercel usa essa senha para chamar o agente.
-4. Publique (Deploy).
+1. Em [vercel.com](https://vercel.com), importe este repositório.
+2. Em **Storage**, crie um **Blob** e conecte ao projeto.
+3. Em **Settings > Environment Variables**, cadastre as variáveis do [`.env.example`](.env.example), incluindo `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `SESSION_SECRET`.
+4. Publique. O site fica em `https://SEU-PROJETO.vercel.app`.
 
-### 4. Ligar o webhook do WhatsApp
+### 4. Webhook do WhatsApp
 
-No app da Meta, em WhatsApp > Configuração:
+No app da Meta, em WhatsApp > Configuração: URL `https://SEU-PROJETO.vercel.app/api/whatsapp`, token de verificação igual ao `WHATSAPP_VERIFY_TOKEN`, e assine o campo **messages**.
 
-- URL de retorno: `https://SEU-PROJETO.vercel.app/api/whatsapp`
-- Token de verificação: o mesmo `WHATSAPP_VERIFY_TOKEN`
-- Clique em **Verificar e salvar** e assine o campo **messages**.
+### 5. Primeiro uso
 
-### 5. Testar
+Entre no site, vá em **Configurações**, preencha as informações da loja, o estoque e as lojas de referência. Depois, na aba **Stories**, toque em **Gerar agora** para ver o primeiro roteiro.
 
-Para rodar agora, sem esperar segunda:
+## Rotina
 
-```bash
-curl -H "Authorization: Bearer SEU_CRON_SECRET" https://SEU-PROJETO.vercel.app/api/gerar
-```
+- **Todo dia:** abra o site de manhã e grave os stories. Durante o dia, se vir stories bons das concorrentes, tire print e envie na aba Prints.
+- **Toda semana:** atualize o estoque em Configurações antes de segunda.
 
-Leva alguns minutos. Em seguida chega o aviso no WhatsApp; responda e o relatório chega.
+## Horários
 
-## Rodar no seu computador
+Definidos em `vercel.json`, em UTC (Florianópolis = UTC−3):
 
-Precisa de Node 20 ou mais novo.
+- Stories: `7 11 * * *` → todo dia às 08:07.
+- Reels: `17 11 * * 1` → segunda às 08:17.
+
+No plano gratuito (Hobby) da Vercel, o agendamento pode rodar a qualquer minuto dentro daquela hora, ou seja, entre 8h e 9h. Os stories ficam prontos antes das 9h.
+
+## Limites
+
+- Cada geração pode levar até 5 minutos no plano Hobby. Se der tempo esgotado, use `CLAUDE_EFFORT=low` ou menos stories por dia. No plano Pro, aumente `maxDuration` para 800 em `vercel.json`.
+- A API só entrega curtidas e comentários de outras contas, sem visualizações. Contas pessoais não aparecem.
+- As contas (mediana, multiplicador) são feitas pela IA e podem ter pequenos erros com muitos posts.
+
+## Rodar no computador
 
 ```bash
 npm install
@@ -111,53 +100,38 @@ npm install
 cp .env.example .env
 ```
 
-Preencha o `.env` e rode:
+Preencha o `.env`. Para abrir o site em `http://localhost:3000` (sem `BLOB_READ_WRITE_TOKEN`, guarda tudo em `.dados/`):
+
+```bash
+npm run site
+```
+
+Para gerar o relatório de reels no terminal, sem enviar nada:
 
 ```bash
 npm run gerar:local
 ```
 
-Gera o relatório e salva em `saida/`, **sem enviar nada**. Outras opções:
-
-- `npm run gerar:local -- --salvar-dados`: guarda também os dados vindos da Meta em `saida/dados-AAAA-MM-DD.json`.
-- `npm run gerar:local -- --dados saida/dados-AAAA-MM-DD.json`: reaproveita esses dados (testa mudanças no prompt sem chamar a Meta de novo).
-- `npm run gerar:local -- --enviar`: faz o mesmo que o Cron (salva no Blob e avisa no WhatsApp). Precisa do `BLOB_READ_WRITE_TOKEN`; baixe as variáveis com `vercel env pull .env`.
-
-Testes e checagem de tipos:
+Testes:
 
 ```bash
 npm test
 ```
 
-```bash
-npm run typecheck
-```
-
-## Ajustes comuns
-
-- **Dia e horário**: em `vercel.json`, campo `crons`. O horário é em UTC: `17 11 * * 1` é segunda às 11:17 UTC, 08:17 em Florianópolis.
-- **Mandar direto, sem o aviso**: `WHATSAPP_MODO=direto`. Só chega se o dono tiver mandado mensagem para o número nas últimas 24 horas; fora disso, o WhatsApp descarta sem avisar.
-- **Tempo limite**: no plano Hobby da Vercel, a função pode rodar por até 300 segundos. Se o relatório não ficar pronto a tempo (erro de timeout nos logs), deixe `CLAUDE_EFFORT=low` ou reduza `quantidadeRoteiros`. No plano Pro, dá para subir `maxDuration` para 800 em `vercel.json`.
-- **Modelo**: o padrão é `claude-opus-5-5`, com esforço `medium`. Se o Claude recusar por política, a API tenta de novo num modelo substituto na mesma chamada (fallback do servidor, ativado em `src/claude.ts`).
-- **Versão da API da Meta**: `META_GRAPH_VERSION` (padrão `v24.0`). Quando a Meta desativar essa versão, troque pela mais recente.
-
-## Limites conhecidos
-
-- De contas de outras pessoas, a API só entrega curtidas e comentários, sem visualizações. Por isso a viralização é medida por engajamento em relação à mediana da própria conta.
-- Contas pessoais não aparecem no `business_discovery`. Posts de contas que escondem as curtidas chegam sem o número de curtidas.
-- As contas (mediana, multiplicador) são feitas pelo Claude. Com muitos posts, ele pode errar alguma casa decimal; para conferir, rode `npm run gerar:local -- --salvar-dados` e compare com os dados salvos em `saida/`.
-- Sem transcrição, o Claude deduz formato e gancho só pela legenda e avisa quando for dedução.
-
 ## Estrutura
 
 ```
-api/gerar.ts        rota do Cron: coleta, análise, Claude, aviso no WhatsApp
-api/whatsapp.ts     webhook: entrega o relatório quando o dono responde
-src/meta.ts         chamadas da API do Instagram
-src/prompt.ts       prompt do sistema (com a análise) e mensagem semanal
-src/claude.ts       chamada ao Claude
-src/whatsapp.ts     envio, divisão das mensagens e assinatura do webhook
-src/armazenamento.ts  relatório no Vercel Blob
-config/             informações da loja, estoque, contas de referência
-scripts/local.ts    rodar no computador
+public/              o site (login, painel)
+api/stories.ts       roteiro diário de stories (agendado + botão do site)
+api/gerar.ts         relatório semanal de reels (agendado + botão do site)
+api/whatsapp.ts      webhook: entrega o relatório quando o dono responde
+api/painel/          login, configurações, histórico e prints
+src/stories.ts       coleta e prompt dos stories
+src/prompt.ts        prompt dos reels
+src/calendario.ts    datas comerciais
+src/auth.ts          login e sessão
+src/meta.ts          API do Instagram
+src/claude.ts        chamada à IA
+src/armazenamento.ts Vercel Blob (ou .dados/ no computador)
+config/              valores iniciais das configurações
 ```

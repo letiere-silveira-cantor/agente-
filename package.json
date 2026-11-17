@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Agente semanal de reels virais da RBTech: busca posts no Instagram, encontra os virais, gera roteiros com o Claude e envia pelo WhatsApp.",
   "scripts": {
+    "site": "tsx scripts/servidor.ts",
     "gerar:local": "tsx scripts/local.ts",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test test/*.test.ts"

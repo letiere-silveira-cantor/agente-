@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Agente RBTech</title>
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="marca"><span class="marca-icone" aria-hidden="true">RB</span> Agente RBTech</div>
+    <button id="sair" class="botao fantasma pequeno">Sair</button>
+  </header>
+
+  <nav class="abas" role="tablist">
+    <button role="tab" data-aba="stories" aria-selected="true">Stories</button>
+    <button role="tab" data-aba="prints">Prints</button>
+    <button role="tab" data-aba="reels">Reels</button>
+    <button role="tab" data-aba="config">Configurações</button>
+  </nav>
+
+  <main>
+    <!-- STORIES -->
+    <section id="aba-stories" class="aba">
+      <div class="barra">
+        <select id="stories-data" aria-label="Dia do roteiro"></select>
+        <button id="stories-gerar" class="botao primario">Gerar agora</button>
+      </div>
+      <p class="suave pequeno-texto">O roteiro de stories é gerado sozinho todo dia antes das 9h. Gerar agora leva alguns minutos.</p>
+      <div id="stories-conteudo"></div>
+    </section>
+
+    <!-- PRINTS -->
+    <section id="aba-prints" class="aba" hidden>
+      <h2>Prints dos stories das concorrentes</h2>
+      <p class="suave">O Instagram não libera os stories de outras lojas para robôs. Tire prints durante o dia e envie aqui: o roteiro de amanhã cedo vai usar o que elas fizeram.</p>
+      <label class="area-envio">
+        <input id="prints-arquivos" type="file" accept="image/*" multiple>
+        <span><strong>Escolher prints</strong><br><span class="suave">JPG ou PNG, quantos quiser</span></span>
+      </label>
+      <p id="prints-status" class="suave" aria-live="polite"></p>
+      <div id="prints-lista"></div>
+    </section>
+
+    <!-- REELS -->
+    <section id="aba-reels" class="aba" hidden>
+      <div class="barra">
+        <select id="reels-data" aria-label="Semana do relatório"></select>
+        <button id="reels-gerar" class="botao primario">Gerar agora</button>
+      </div>
+      <label class="check"><input type="checkbox" id="reels-enviar"> Também avisar no WhatsApp</label>
+      <p class="suave pequeno-texto">O relatório de reels é gerado sozinho toda segunda de manhã e avisado no WhatsApp.</p>
+      <div id="reels-conteudo"></div>
+    </section>
+
+    <!-- CONFIGURAÇÕES -->
+    <section id="aba-config" class="aba" hidden>
+      <form id="form-config">
+        <h2>Lojas de referência</h2>
+        <label>Um @ por linha. Só funcionam contas comerciais ou de criador.
+          <textarea name="contas" rows="6" spellcheck="false"></textarea>
+        </label>
+        <div class="grade-numeros">
+          <label>Stories por dia <input type="number" name="quantidadeStories" min="5" max="30"></label>
+          <label>Roteiros de reels por semana <input type="number" name="quantidadeRoteiros" min="1" max="10"></label>
+          <label>Dias analisados nos reels <input type="number" name="diasAnalise" min="7" max="90"></label>
+        </div>
+
+        <h2>Estoque da semana</h2>
+        <label>Produtos, preços e condições. A IA só usa o que estiver aqui.
+          <textarea name="estoque" rows="8"></textarea>
+        </label>
+
+        <h2>Sobre a loja</h2>
+        <label>O que vende, diferenciais, público, bairro, tom de voz, @ e WhatsApp.
+          <textarea name="loja" rows="10"></textarea>
+        </label>
+
+        <h2>Transcrições de reels (opcional)</h2>
+        <label>Link do reel e o texto falado.
+          <textarea name="transcricoes" rows="5"></textarea>
+        </label>
+
+        <div class="rodape-form">
+          <span id="config-status" class="suave" aria-live="polite"></span>
+          <button type="submit" class="botao primario">Salvar</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="aviso" class="aviso" role="status" hidden></div>
+  <script src="/painel.js"></script>
+</body>
+</html>

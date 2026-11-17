@@ -51,16 +51,20 @@ interface Insight {
   total_value?: { value: number };
 }
 
-async function buscarInsights(mediaId: string): Promise<{ alcance?: number; visualizacoes?: number }> {
-  // Os nomes das métricas mudam entre versões da API; se "views" falhar, tenta só "reach".
-  for (const metricas of ["reach,views", "reach"]) {
+/**
+ * Métricas de um post ou story. Os nomes mudam entre versões da API,
+ * então tenta combinações da mais completa para a mais simples.
+ */
+async function buscarInsights(mediaId: string, combinacoes: string[]): Promise<Record<string, number>> {
+  for (const metricas of combinacoes) {
     try {
       const { data } = await chamarGraph<{ data: Insight[] }>(`${mediaId}/insights`, { metric: metricas });
-      const valor = (nome: string) => {
-        const m = data.find((i) => i.name === nome);
-        return m?.total_value?.value ?? m?.values?.[0]?.value;
-      };
-      return { alcance: valor("reach"), visualizacoes: valor("views") };
+      const saida: Record<string, number> = {};
+      for (const m of data) {
+        const valor = m.total_value?.value ?? m.values?.[0]?.value;
+        if (typeof valor === "number") saida[m.name] = valor;
+      }
+      return saida;
     } catch {
       // tenta a próxima combinação
     }
@@ -80,7 +84,8 @@ export async function buscarPostsProprios(agora: Date, limite = 30): Promise<Pos
   return Promise.all(
     data.map(async (post) => {
       if (new Date(post.timestamp).getTime() < inicioSemana) return post;
-      return { ...post, ...(await buscarInsights(post.id)) };
+      const m = await buscarInsights(post.id, ["reach,views", "reach"]);
+      return { ...post, alcance: m.reach, visualizacoes: m.views };
     }),
   );
 }
@@ -104,4 +109,29 @@ export async function coletarDados(contas: string[], postsPorConta: number, agor
   }
 
   return { referencias, proprios, avisos };
+}
+
+/** Story da própria RBTech (a API não entrega stories de outras contas). */
+export interface StoryProprio {
+  media_type?: string;
+  permalink?: string;
+  timestamp: string;
+  caption?: string;
+  /** Métricas que a API devolver: reach, views, replies... */
+  metricas: Record<string, number>;
+}
+
+/** Stories da RBTech ainda no ar (últimas 24 horas), com as métricas disponíveis. */
+export async function buscarStoriesProprios(): Promise<StoryProprio[]> {
+  const igUserId = exigirEnv("IG_USER_ID");
+  const { data } = await chamarGraph<{ data: { id: string; media_type?: string; permalink?: string; timestamp: string; caption?: string }[] }>(
+    `${igUserId}/stories`,
+    { fields: "id,media_type,permalink,timestamp,caption" },
+  );
+  return Promise.all(
+    data.map(async ({ id, ...story }) => ({
+      ...story,
+      metricas: await buscarInsights(id, ["reach,views,replies", "reach,replies", "reach"]),
+    })),
+  );
 }

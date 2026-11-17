@@ -47,7 +47,8 @@ Escreva ${quantidadeRoteiros} roteiros para o dono gravar com o celular, sozinho
 
 Regras:
 - Adapte a fórmula, nunca o conteúdo. Não reaproveite frases, piadas ou bordões de outras lojas. O Instagram reduz o alcance de conteúdo copiado, e a loja precisa de identidade própria.
-- Use só produtos, preços e condições que estiverem na lista de estoque e nas informações da loja. Se um roteiro pedir um produto que não está na lista, use um exemplo genérico e avise. Nunca invente preço, especificação, garantia ou promoção.
+- Use só produtos, preços e condições que estiverem no estoque e nas informações da loja. Se um roteiro pedir um produto que não está no estoque, use um exemplo genérico e avise. Nunca invente preço, especificação, garantia ou promoção.
+- O estoque é escrito pelo dono do jeito que ele quiser: lista, frases soltas, abreviações (\"13 pro max 256 azul 4.2k pix\"), erros de digitação, preços em formatos variados. Interprete com bom senso. Quando algo estiver incompleto ou ambíguo (preço sem dizer se é no Pix, modelo sem capacidade, condição pouco clara), use só a parte que está clara e não complete o resto por conta própria.
 - Escreva como o dono falaria: português do Brasil, frases curtas, natural, sem cara de anúncio. Nada de gírias forçadas.
 - Não fale mal de concorrentes nem de outras lojas.
 - O gancho é o mais importante: ele precisa prender nos primeiros 3 segundos.
@@ -69,7 +70,7 @@ Depois, para cada roteiro:
 *Por que deve funcionar:* [1 frase]
 *Duração:* [em segundos]
 *Cenário:* [onde gravar, enquadramento, o que aparece]
-*Produto:* [da lista de estoque]
+*Produto:* [do estoque]
 
 *Gancho (0–3s)*
 Fala: "..."

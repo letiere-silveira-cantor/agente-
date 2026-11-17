@@ -92,9 +92,9 @@ export function normalizarContas(json: Partial<ConfigContas>): ConfigContas {
 export async function lerTextosLoja(): Promise<TextosLoja> {
   const contasBruto = await lerConfig("contas.json");
   return {
-    loja: await lerConfig("loja.md"),
-    estoque: await lerConfig("estoque.md"),
-    transcricoes: await lerConfig("transcricoes.md"),
+    loja: semComentarios(await lerConfig("loja.md")),
+    estoque: semComentarios(await lerConfig("estoque.md")),
+    transcricoes: semComentarios(await lerConfig("transcricoes.md")),
     contas: normalizarContas(contasBruto ? (JSON.parse(contasBruto) as Partial<ConfigContas>) : {}),
   };
 }
@@ -123,8 +123,8 @@ export async function carregarConfigLoja(): Promise<ConfigLoja> {
     throw new Error("Nenhuma loja de referência cadastrada. Cadastre no site, em Configurações.");
   }
   const sobreALoja = semComentarios(textos.loja);
-  if (!sobreALoja || sobreALoja.includes("{{")) {
-    throw new Error("Preencha as informações da loja no site, em Configurações (ainda há campos {{ }} sem trocar).");
+  if (!sobreALoja) {
+    throw new Error("Preencha \"Sobre a loja\" no site, em Configurações.");
   }
   return {
     contas: textos.contas,

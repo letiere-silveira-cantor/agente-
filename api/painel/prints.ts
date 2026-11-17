@@ -1,3 +1,4 @@
+import { comErros } from "../../src/http.js";
 import { exigirLogin } from "../../src/auth.js";
 import { FUSO_HORARIO } from "../../src/config.js";
 import {
@@ -15,7 +16,7 @@ import {
  * GET: lista os de ontem e de hoje, ou devolve a imagem com ?caminho=.
  * POST: envia uma imagem (corpo = bytes da imagem). DELETE ?caminho=: apaga.
  */
-export async function GET(request: Request): Promise<Response> {
+async function get_(request: Request): Promise<Response> {
   const bloqueio = exigirLogin(request);
   if (bloqueio) return bloqueio;
 
@@ -34,7 +35,7 @@ export async function GET(request: Request): Promise<Response> {
   return Response.json({ ontem, hoje, prints: await listarPrints([ontem, hoje]) });
 }
 
-export async function POST(request: Request): Promise<Response> {
+async function post_(request: Request): Promise<Response> {
   const bloqueio = exigirLogin(request);
   if (bloqueio) return bloqueio;
 
@@ -48,7 +49,7 @@ export async function POST(request: Request): Promise<Response> {
   return Response.json({ ok: true, caminho });
 }
 
-export async function DELETE(request: Request): Promise<Response> {
+async function delete_(request: Request): Promise<Response> {
   const bloqueio = exigirLogin(request);
   if (bloqueio) return bloqueio;
   const caminho = new URL(request.url).searchParams.get("caminho") ?? "";
@@ -56,3 +57,7 @@ export async function DELETE(request: Request): Promise<Response> {
     ? Response.json({ ok: true })
     : Response.json({ erro: "caminho inválido" }, { status: 400 });
 }
+
+export const GET = comErros(get_);
+export const POST = comErros(post_);
+export const DELETE = comErros(delete_);

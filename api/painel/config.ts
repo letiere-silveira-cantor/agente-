@@ -1,12 +1,13 @@
+import { comErros } from "../../src/http.js";
 import { exigirLogin } from "../../src/auth.js";
 import { lerTextosLoja, salvarTextosLoja, type TextosLoja } from "../../src/config.js";
 
 /** Informações da loja, estoque, transcrições e lojas de referência. */
-export async function GET(request: Request): Promise<Response> {
+async function get_(request: Request): Promise<Response> {
   return exigirLogin(request) ?? Response.json(await lerTextosLoja());
 }
 
-export async function PUT(request: Request): Promise<Response> {
+async function put_(request: Request): Promise<Response> {
   const bloqueio = exigirLogin(request);
   if (bloqueio) return bloqueio;
   const corpo = (await request.json().catch(() => null)) as Partial<TextosLoja> | null;
@@ -16,3 +17,6 @@ export async function PUT(request: Request): Promise<Response> {
   await salvarTextosLoja({ ...corpo, contas: corpo.contas ? { ...atual.contas, ...corpo.contas } : undefined });
   return Response.json(await lerTextosLoja());
 }
+
+export const GET = comErros(get_);
+export const PUT = comErros(put_);

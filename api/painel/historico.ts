@@ -1,3 +1,4 @@
+import { comErros } from "../../src/http.js";
 import { exigirLogin } from "../../src/auth.js";
 import { carregarRelatorio, listarRelatorios } from "../../src/armazenamento.js";
 import { carregarStories, listarStories } from "../../src/stories.js";
@@ -6,7 +7,7 @@ import { carregarStories, listarStories } from "../../src/stories.js";
  * Histórico. ?tipo=stories ou ?tipo=reels.
  * Sem ?data: lista as datas. Com ?data=AAAA-MM-DD: devolve aquele dia.
  */
-export async function GET(request: Request): Promise<Response> {
+async function get_(request: Request): Promise<Response> {
   const bloqueio = exigirLogin(request);
   if (bloqueio) return bloqueio;
 
@@ -22,3 +23,5 @@ export async function GET(request: Request): Promise<Response> {
   const item = tipo === "stories" ? await carregarStories(data) : await carregarRelatorio(data);
   return item ? Response.json(item) : Response.json({ erro: "não encontrado" }, { status: 404 });
 }
+
+export const GET = comErros(get_);

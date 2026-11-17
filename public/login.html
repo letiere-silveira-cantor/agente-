@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Entrar · Agente RBTech</title>
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-login">
+  <main class="cartao-login">
+    <div class="marca"><span class="marca-icone" aria-hidden="true">RB</span> Agente RBTech</div>
+    <h1>Entrar</h1>
+    <p class="suave">Acesso exclusivo da RBTech.</p>
+    <form id="form-login" novalidate>
+      <label>E-mail
+        <input type="email" name="email" autocomplete="username" required>
+      </label>
+      <label>Senha
+        <input type="password" name="senha" autocomplete="current-password" required>
+      </label>
+      <p id="erro" class="erro" role="alert" hidden></p>
+      <button type="submit" class="botao primario largo">Entrar</button>
+    </form>
+  </main>
+  <script>
+    fetch("/api/painel/sessao").then((r) => { if (r.ok) location.replace("/"); });
+    const form = document.getElementById("form-login");
+    const erro = document.getElementById("erro");
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      erro.hidden = true;
+      const botao = form.querySelector("button");
+      botao.disabled = true;
+      botao.textContent = "Entrando…";
+      try {
+        const resposta = await fetch("/api/painel/sessao", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-Painel": "1" },
+          body: JSON.stringify({ email: form.email.value, senha: form.senha.value }),
+        });
+        const corpo = await resposta.json().catch(() => ({}));
+        if (resposta.ok) return location.replace("/");
+        erro.textContent = corpo.erro || "Não foi possível entrar.";
+        erro.hidden = false;
+      } catch {
+        erro.textContent = "Sem conexão. Tente de novo.";
+        erro.hidden = false;
+      }
+      botao.disabled = false;
+      botao.textContent = "Entrar";
+    });
+  </script>
+</body>
+</html>

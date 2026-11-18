@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>RBTech · Gestor de conteúdo</title>
+  <meta name="theme-color" content="#0f0f0f">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23FFD60A'/%3E%3Ctext x='32' y='42' font-family='Arial,sans-serif' font-size='28' font-weight='900' text-anchor='middle' fill='%230F0F0F'%3ERB%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/estilo.css">
+</head>
+<body class="pagina-gestor">
+  <header class="topo topo-largo">
+    <div class="marca"><span class="marca-icone" aria-hidden="true">RB</span><span class="marca-nome"><b>RB<span>TECH</span></b><small>Gestor de conteúdo</small></span></div>
+    <div class="acoes-topo">
+      <a class="botao pequeno" href="/">← Agente</a>
+      <button id="sair" class="botao fantasma pequeno">Sair</button>
+    </div>
+  </header>
+
+  <div class="barra-gestor">
+    <div class="navegar-semana">
+      <button id="semana-anterior" class="botao pequeno" aria-label="Semana anterior">◀</button>
+      <button id="hoje" class="botao pequeno">Hoje</button>
+      <button id="semana-seguinte" class="botao pequeno" aria-label="Semana seguinte">▶</button>
+      <span id="periodo" class="periodo"></span>
+    </div>
+    <div class="navegar-semana">
+      <select id="filtro-tipo" aria-label="Filtrar por tipo">
+        <option value="">Todos os tipos</option>
+        <option value="story">Stories</option>
+        <option value="reels">Reels</option>
+        <option value="post">Posts</option>
+        <option value="outro">Outros</option>
+      </select>
+      <button id="novo-card" class="botao primario pequeno">+ Novo card</button>
+    </div>
+  </div>
+
+  <div id="quadro" class="quadro" aria-live="polite"></div>
+
+  <div id="aviso" class="aviso" role="status" hidden></div>
+  <script src="/comum.js"></script>
+  <script src="/gestor.js"></script>
+</body>
+</html>

@@ -85,7 +85,8 @@ strong { font-weight: 700; }
 .botao.largo { width: 100%; }
 
 label { display: block; font-size: 0.88rem; color: var(--suave); margin: 10px 0; }
-input[type="email"], input[type="password"], input[type="number"], input[type="text"], select, textarea {
+input[type="email"], input[type="password"], input[type="number"], input[type="text"],
+input[type="date"], input[type="time"], select, textarea {
   display: block; width: 100%; margin-top: 6px; padding: 11px 13px;
   border: 1px solid var(--borda); border-radius: 12px; background: var(--superficie); color: var(--texto);
   font: inherit; font-size: 16px;
@@ -208,3 +209,83 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--amarelo); o
   background: var(--amarelo); color: var(--preto); font-weight: 700; padding: 10px 18px; border-radius: 12px;
   font-size: 0.9rem; max-width: calc(100% - 32px); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
+
+/* ---------- Gestor (quadro tipo Trello) ---------- */
+.aba-link {
+  flex: 0 0 auto; align-self: center; padding: 6px 14px; border-radius: 999px; font-weight: 700; font-size: 0.9rem;
+  border: 1px solid var(--amarelo); color: var(--amarelo); text-decoration: none; white-space: nowrap;
+}
+.gestor-add { border-color: var(--amarelo); color: var(--amarelo); }
+.topo-largo { max-width: none; padding-left: 16px; padding-right: 16px; }
+.acoes-topo { display: flex; gap: 8px; align-items: center; }
+a.botao { text-decoration: none; }
+
+.barra-gestor {
+  position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+  align-items: center; padding: 10px 16px; background: var(--fundo); border-bottom: 1px solid var(--borda);
+}
+.navegar-semana { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.navegar-semana select { margin: 0; width: auto; padding: 7px 10px; font-size: 0.88rem; }
+.periodo { font-weight: 700; font-size: 0.9rem; }
+input[type="date"]::-webkit-calendar-picker-indicator, input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+.quadro {
+  display: flex; gap: 14px; overflow-x: auto; padding: 16px; align-items: flex-start;
+  scroll-snap-type: x mandatory; min-height: calc(100vh - 140px);
+}
+.coluna {
+  flex: 0 0 300px; scroll-snap-align: start; background: var(--superficie); border: 1px solid var(--borda);
+  border-radius: var(--raio); padding: 12px; display: flex; flex-direction: column; gap: 10px;
+}
+@media (max-width: 600px) { .coluna { flex-basis: 84vw; } }
+.coluna-hoje { border-color: var(--amarelo); box-shadow: 0 0 0 1px var(--amarelo) inset; }
+.coluna-topo { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.coluna-topo b { text-transform: capitalize; font-weight: 800; }
+.coluna-topo .pequeno-texto { margin: 0; }
+.selo-hoje {
+  margin-left: 8px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; padding: 2px 7px;
+  border-radius: 999px; background: var(--amarelo); color: var(--preto);
+}
+.coluna-cards { display: flex; flex-direction: column; gap: 10px; }
+.coluna-vazia { font-size: 0.85rem; text-align: center; margin: 8px 0; }
+.adicionar-coluna { color: var(--suave); border-style: dashed; }
+.adicionar-coluna:hover { color: var(--amarelo); border-color: var(--amarelo); }
+
+.card-mini {
+  background: var(--superficie-2); border: 1px solid var(--borda); border-left: 4px solid var(--suave);
+  border-radius: 12px; padding: 10px 12px; cursor: pointer;
+}
+.card-mini:hover, .card-mini:focus-visible { border-color: var(--amarelo); outline: none; }
+.card-mini.status-a-fazer { border-left-color: var(--suave); }
+.card-mini.status-gravado { border-left-color: var(--amarelo); }
+.card-mini.status-postado { border-left-color: #3ecf74; opacity: 0.7; }
+.card-mini h3 { font-size: 0.95rem; margin: 8px 0 4px; line-height: 1.35; }
+.card-mini-topo { display: flex; align-items: center; gap: 8px; }
+.card-mini-texto {
+  margin: 0; font-size: 0.8rem; color: var(--suave); white-space: pre-line;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.card-mini-acoes { display: flex; align-items: center; gap: 6px; margin-top: 10px; }
+.numero.pequeno { width: 26px; height: 26px; font-size: 0.8rem; }
+.tipo-story { border-color: var(--amarelo); color: var(--amarelo); }
+.tipo-reels { border-color: #ff7a45; color: #ff7a45; }
+.tipo-post { border-color: #5ab0ff; color: #5ab0ff; }
+.tipo-outro { border-color: var(--suave); color: var(--suave); }
+.status-pilula {
+  border: 0; border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 0.72rem; font-weight: 700;
+  text-transform: uppercase; cursor: pointer; background: var(--borda); color: var(--texto);
+}
+.status-pilula.status-gravado { background: var(--amarelo); color: var(--preto); }
+.status-pilula.status-postado { background: #3ecf74; color: var(--preto); }
+.botao.icone { padding: 4px 10px; }
+.espaco { flex: 1; }
+
+/* Janela (adicionar/editar card) */
+.janela {
+  width: min(560px, calc(100% - 24px)); max-height: calc(100% - 24px); padding: 20px; border-radius: 18px;
+  border: 1px solid var(--borda); background: var(--superficie); color: var(--texto);
+}
+.janela::backdrop { background: rgba(0, 0, 0, 0.7); }
+.janela h2 { margin-top: 0; }
+.acoes-janela { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+.botao.perigo { color: var(--erro); border-color: transparent; }

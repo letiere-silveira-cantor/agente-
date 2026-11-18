@@ -1,94 +1,5 @@
 "use strict";
 
-// ---------- utilidades ----------
-
-async function api(caminho, opcoes = {}) {
-  const resposta = await fetch(caminho, {
-    ...opcoes,
-    headers: { "X-Painel": "1", ...(opcoes.headers || {}) },
-  });
-  if (resposta.status === 401) {
-    location.replace("/login.html");
-    throw new Error("sessão expirada");
-  }
-  const corpo = await resposta.json().catch(() => ({}));
-  if (!resposta.ok) throw new Error(corpo.erro || `Erro ${resposta.status}`);
-  return corpo;
-}
-
-const $ = (seletor) => document.querySelector(seletor);
-
-function el(tag, atributos = {}, ...filhos) {
-  const no = document.createElement(tag);
-  for (const [chave, valor] of Object.entries(atributos)) {
-    if (chave === "class") no.className = valor;
-    else if (chave.startsWith("on")) no.addEventListener(chave.slice(2), valor);
-    else no.setAttribute(chave, valor);
-  }
-  for (const filho of filhos.flat()) if (filho != null && filho !== false) no.append(filho);
-  return no;
-}
-
-let timerAviso;
-function avisar(texto) {
-  const aviso = $("#aviso");
-  aviso.textContent = texto;
-  aviso.hidden = false;
-  clearTimeout(timerAviso);
-  timerAviso = setTimeout(() => (aviso.hidden = true), 3500);
-}
-
-async function copiar(texto) {
-  try {
-    await navigator.clipboard.writeText(texto);
-    avisar("Copiado");
-  } catch {
-    avisar("Não consegui copiar");
-  }
-}
-
-function formatarData(iso) {
-  const [ano, mes, dia] = iso.split("-").map(Number);
-  return new Date(ano, mes - 1, dia).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
-}
-
-function preencherDatas(select, datas, rotuloVazio) {
-  select.replaceChildren(
-    ...(datas.length ? datas.map((d) => el("option", { value: d }, formatarData(d))) : [el("option", { value: "" }, rotuloVazio)]),
-  );
-}
-
-/** Texto no formato do WhatsApp (*negrito*, _itálico_) para HTML seguro. */
-function whatsappParaNos(texto) {
-  const frag = document.createDocumentFragment();
-  const padrao = /(\*[^*\n]+\*|_[^_\n]+_|https?:\/\/[^\s)]+)/g;
-  let ultimo = 0;
-  for (const m of texto.matchAll(padrao)) {
-    frag.append(texto.slice(ultimo, m.index));
-    const t = m[0];
-    if (t.startsWith("*")) frag.append(el("strong", {}, t.slice(1, -1)));
-    else if (t.startsWith("_")) frag.append(el("em", {}, t.slice(1, -1)));
-    else frag.append(el("a", { href: t, target: "_blank", rel: "noopener noreferrer" }, t));
-    ultimo = m.index + t.length;
-  }
-  frag.append(texto.slice(ultimo));
-  return frag;
-}
-
-async function comBotaoOcupado(botao, textoOcupado, acao) {
-  const original = botao.textContent;
-  botao.disabled = true;
-  botao.textContent = textoOcupado;
-  try {
-    await acao();
-  } catch (e) {
-    avisar(e.message);
-  } finally {
-    botao.disabled = false;
-    botao.textContent = original;
-  }
-}
-
 // ---------- abas ----------
 
 const carregadas = new Set();
@@ -123,6 +34,13 @@ function lerPostados(data) {
 function gravarPostados(data, conjunto) {
   try { localStorage.setItem(chavePostados(data), JSON.stringify([...conjunto])); } catch {}
 }
+
+/** Tira os *asteriscos* de negrito do WhatsApp, para o texto ficar limpo no gestor. */
+function semAsteriscos(texto) {
+  return texto.replace(/\*([^*\n]+)\*/g, "$1");
+}
+
+const horaValida = (h) => (/^([01]\d|2[0-3]):[0-5]\d$/.test(h || "") ? h : "");
 
 function textoDoStory(s) {
   return [
@@ -189,6 +107,14 @@ function mostrarStories(roteiro) {
     );
     cartao.append(el("div", { class: "acoes" },
       el("button", { class: "botao pequeno", onclick: () => copiar(textoDoStory(s)) }, "Copiar"),
+      botaoGestor(() => ({
+        dia: roteiro.data,
+        tipo: "story",
+        horario: horaValida(s.horario),
+        titulo: `${s.tipo}: ${s.objetivo}`.slice(0, 200),
+        conteudo: textoDoStory(s),
+        origem: `Stories de ${roteiro.data.split("-").reverse().slice(0, 2).join("/")}, nº ${s.numero}`,
+      })),
       marcar,
     ));
     return cartao;
@@ -244,10 +170,23 @@ function rotuloIdeia(id) {
 
 function mostrarIdeia(ideia) {
   const secoes = ideia.texto.split(/\n(?=\*(?:🔥|📱|🎬|🖼️))/u).map((x) => x.trim()).filter(Boolean);
-  const cartoes = secoes.map((secao, i) => el("div", { class: i === 0 ? "cartao hud" : "cartao" },
-    el("div", { class: "mensagem" }, whatsappParaNos(secao)),
-    el("div", { class: "acoes" }, el("button", { class: "botao pequeno", onclick: () => copiar(secao) }, "Copiar")),
-  ));
+  const assunto = (ideia.texto.match(/Assunto:\*?\s*([^\n]+)/) || [])[1]?.trim() || ideia.tema || "ideia avulsa";
+  const tipoDaSecao = (secao) => (secao.startsWith("*📱") ? "story" : secao.startsWith("*🎬") ? "reels" : secao.startsWith("*🖼") ? "post" : null);
+  const cartoes = secoes.map((secao, i) => {
+    const tipo = tipoDaSecao(secao);
+    return el("div", { class: i === 0 ? "cartao hud" : "cartao" },
+      el("div", { class: "mensagem" }, whatsappParaNos(secao)),
+      el("div", { class: "acoes" },
+        el("button", { class: "botao pequeno", onclick: () => copiar(secao) }, "Copiar"),
+        tipo ? botaoGestor(() => ({
+          tipo,
+          titulo: `${TIPOS_CARD[tipo]}: ${assunto}`.slice(0, 200),
+          conteudo: semAsteriscos(secao.replace(/^\*[^\n]*\*\n?/, "")),
+          origem: `Ideia de ${rotuloIdeia(ideia.id)}`,
+        })) : null,
+      ),
+    );
+  });
   const cabecalho = el("p", { class: "suave pequeno-texto" },
     ideia.tema ? `Tema pedido: ${ideia.tema}` : "Tema escolhido pela IA");
   const fontes = ideia.fontes?.length
@@ -377,10 +316,21 @@ async function carregarReels(data) {
     const relatorio = await api(`/api/painel/historico?tipo=reels&data=${data}`);
     alvo.replaceChildren(
       el("p", { class: "suave pequeno-texto" }, `Período: ${relatorio.periodo}`),
-      ...relatorio.partes.map((parte, i) => el("div", { class: i === 0 ? "cartao hud" : "cartao" },
-        el("div", { class: "mensagem" }, whatsappParaNos(parte)),
-        el("div", { class: "acoes" }, el("button", { class: "botao pequeno", onclick: () => copiar(parte) }, "Copiar")),
-      )),
+      ...relatorio.partes.map((parte, i) => {
+        const roteiro = parte.match(/^\*🎬\s*(ROTEIRO[^*\n]*)\*/u);
+        return el("div", { class: i === 0 ? "cartao hud" : "cartao" },
+          el("div", { class: "mensagem" }, whatsappParaNos(parte)),
+          el("div", { class: "acoes" },
+            el("button", { class: "botao pequeno", onclick: () => copiar(parte) }, "Copiar"),
+            roteiro ? botaoGestor(() => ({
+              tipo: "reels",
+              titulo: roteiro[1].trim().slice(0, 200),
+              conteudo: semAsteriscos(parte.replace(/^\*[^\n]*\*\n?/, "")),
+              origem: `Relatório de reels de ${data.split("-").reverse().join("/")}`,
+            })) : null,
+          ),
+        );
+      }),
     );
   } catch (e) {
     alvo.replaceChildren(el("div", { class: "vazio" }, e.message));

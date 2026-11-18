@@ -33,6 +33,7 @@ Toda a análise é feita pela IA. O código só busca os dados e entrega a ela.
 |---|---|
 | **Stories** | Roteiro do dia em cartões: horário, cena, fala, texto na tela, figurinha. Botão para copiar e marcar como postado. Dá para ver dias anteriores e gerar de novo na hora. |
 | **Ideias** | Ideia avulsa: a IA pesquisa na internet o que está viralizando agora (ou o tema que você digitar, como "GTA 6") e cria 1 story, 1 reels e 1 post, com as fontes da pesquisa. |
+| **Gestor** (página própria, `/gestor.html`) | Quadro tipo Trello: uma coluna por dia, cards em sequência (1º, 2º, 3º...), com tipo (story, reels, post), horário e status (a fazer, gravado, postado). Dá para editar, mover de dia, subir e descer na sequência e criar cards do zero. Nos stories, ideias e roteiros de reels do agente, o botão **+ Gestor** pergunta o dia e a posição e deixa editar o texto antes de adicionar. |
 | **Prints** | Enviar prints dos stories das concorrentes (direto da galeria do celular). |
 | **Reels** | Relatório semanal de reels, com histórico. |
 | **Configurações** | Lojas de referência, estoque da semana, informações da loja, quantos stories por dia. |
@@ -130,11 +131,12 @@ api/stories.ts       roteiro diário de stories (agendado + botão do site)
 api/gerar.ts         relatório semanal de reels (agendado + botão do site)
 api/ideias.ts        ideia avulsa com pesquisa na internet
 api/whatsapp.ts      webhook: entrega o relatório quando o dono responde
-api/painel/          login, configurações, histórico e prints
+api/painel/          login, configurações, histórico, prints e gestor
 src/stories.ts       coleta e prompt dos stories
 src/prompt.ts        prompt dos reels
 src/ideias.ts        prompt e histórico das ideias avulsas
 src/calendario.ts    datas comerciais
+src/gestor.ts        quadro do gestor (cards por dia e sequência)
 src/auth.ts          login e sessão
 src/meta.ts          API do Instagram
 src/claude.ts        chamada à IA
